@@ -68,4 +68,4 @@ node server.js
 
 ## 👩‍💻 Author
 
-Pratiksha
+Pratikshaa
