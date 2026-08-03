@@ -1,91 +1,95 @@
-// Dummy Data
-let tasks = [
-  {
-    id: 1,
-    title: "Learn Node.js",
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Build TaskFlow API",
-    completed: true,
-  },
-];
+const Task = require("../models/Task");
 
 // GET All Tasks
-const getAllTasks = (req, res) => {
-  res.json(tasks);
+const getAllTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // GET Task By ID
-const getTaskById = (req, res) => {
-  const id = parseInt(req.params.id);
+const getTaskById = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
 
-  const task = tasks.find((task) => task.id === id);
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
 
-  if (!task) {
-    return res.status(404).json({
-      message: "Task not found",
-    });
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  res.json(task);
 };
 
 // POST Add Task
-const addTask = (req, res) => {
-  const newTask = {
-    id: tasks.length + 1,
-    title: req.body.title,
-    completed: false,
-  };
+const addTask = async (req, res) => {
+  try {
+    const task = new Task({
+      title: req.body.title,
+      completed: req.body.completed || false,
+    });
 
-  tasks.push(newTask);
+    const savedTask = await task.save();
 
-  res.status(201).json({
-    message: "Task Added Successfully",
-    task: newTask,
-  });
+    res.status(201).json({
+      message: "Task Added Successfully",
+      task: savedTask,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // PUT Update Task
-const updateTask = (req, res) => {
-  const id = parseInt(req.params.id);
+const updateTask = async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: req.body.title,
+        completed: req.body.completed,
+      },
+      { new: true }
+    );
 
-  const task = tasks.find((task) => task.id === id);
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
 
-  if (!task) {
-    return res.status(404).json({
-      message: "Task not found",
+    res.json({
+      message: "Task Updated Successfully",
+      task,
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  task.title = req.body.title;
-  task.completed = req.body.completed;
-
-  res.json({
-    message: "Task Updated Successfully",
-    task,
-  });
 };
 
 // DELETE Task
-const deleteTask = (req, res) => {
-  const id = parseInt(req.params.id);
+const deleteTask = async (req, res) => {
+  try {
+    const task = await Task.findByIdAndDelete(req.params.id);
 
-  const index = tasks.findIndex((task) => task.id === id);
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
 
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Task not found",
+    res.json({
+      message: "Task Deleted Successfully",
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  tasks.splice(index, 1);
-
-  res.json({
-    message: "Task Deleted Successfully",
-  });
 };
 
 module.exports = {
