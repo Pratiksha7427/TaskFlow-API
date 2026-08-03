@@ -29,21 +29,31 @@ const getTaskById = async (req, res) => {
 
 // POST Add Task
 const addTask = async (req, res) => {
-  try {
-    const task = new Task({
-      title: req.body.title,
-      completed: req.body.completed || false,
-    });
+    try {
 
-    const savedTask = await task.save();
+        if (!req.body.title || req.body.title.trim() === "") {
+            return res.status(400).json({
+                message: "Title is required"
+            });
+        }
 
-    res.status(201).json({
-      message: "Task Added Successfully",
-      task: savedTask,
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+        const task = new Task({
+            title: req.body.title.trim(),
+            completed: req.body.completed || false,
+        });
+
+        const savedTask = await task.save();
+
+        res.status(201).json({
+            message: "Task Added Successfully",
+            task: savedTask,
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            message: err.message,
+        });
+    }
 };
 
 // PUT Update Task
