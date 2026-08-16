@@ -1,4 +1,8 @@
+const mongoose = require("mongoose");
 const Task = require("../models/Task");
+
+// Helper: validate MongoDB ObjectId
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // GET All Tasks
 const getAllTasks = async (req, res) => {
@@ -13,12 +17,14 @@ const getAllTasks = async (req, res) => {
 // GET Task By ID
 const getTaskById = async (req, res) => {
   try {
+    if (!isValidId(req.params.id)) {
+      return res.status(400).json({ message: "Invalid task ID" });
+    }
+
     const task = await Task.findById(req.params.id);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      return res.status(404).json({ message: "Task not found" });
     }
 
     res.json(task);
@@ -29,49 +35,45 @@ const getTaskById = async (req, res) => {
 
 // POST Add Task
 const addTask = async (req, res) => {
-    try {
-
-        if (!req.body.title || req.body.title.trim() === "") {
-            return res.status(400).json({
-                message: "Title is required"
-            });
-        }
-
-        const task = new Task({
-            title: req.body.title.trim(),
-            completed: req.body.completed || false,
-        });
-
-        const savedTask = await task.save();
-
-        res.status(201).json({
-            message: "Task Added Successfully",
-            task: savedTask,
-        });
-
-    } catch (err) {
-        res.status(500).json({
-            message: err.message,
-        });
+  try {
+    if (!req.body.title || req.body.title.trim() === "") {
+      return res.status(400).json({ message: "Title is required" });
     }
+
+    const task = new Task({
+      title: req.body.title.trim(),
+      completed: req.body.completed || false,
+    });
+
+    const savedTask = await task.save();
+
+    res.status(201).json({
+      message: "Task Added Successfully",
+      task: savedTask,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // PUT Update Task
 const updateTask = async (req, res) => {
   try {
+    if (!isValidId(req.params.id)) {
+      return res.status(400).json({ message: "Invalid task ID" });
+    }
+
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       {
         title: req.body.title,
         completed: req.body.completed,
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      return res.status(404).json({ message: "Task not found" });
     }
 
     res.json({
@@ -86,17 +88,17 @@ const updateTask = async (req, res) => {
 // DELETE Task
 const deleteTask = async (req, res) => {
   try {
+    if (!isValidId(req.params.id)) {
+      return res.status(400).json({ message: "Invalid task ID" });
+    }
+
     const task = await Task.findByIdAndDelete(req.params.id);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      return res.status(404).json({ message: "Task not found" });
     }
 
-    res.json({
-      message: "Task Deleted Successfully",
-    });
+    res.json({ message: "Task Deleted Successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

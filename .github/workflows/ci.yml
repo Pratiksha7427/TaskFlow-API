@@ -1,5 +1,4 @@
 name: TaskFlow API CI
-
 on:
   push:
     branches:
@@ -7,22 +6,21 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
       - name: Install Dependencies
         run: npm install
-
+      - name: Run Tests
+        run: npm test
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - name: Verify Project
         run: echo "✅ TaskFlow API build successful!"
