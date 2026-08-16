@@ -12,15 +12,32 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+
       - name: Install Dependencies
         run: npm install
+
       - name: Run Tests
         run: npm test
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/taskflow-api:latest
+
       - name: Verify Project
-        run: echo "✅ TaskFlow API build successful!"
+        run: echo "✅ TaskFlow API build, tested, and Docker image pushed successfully!"
